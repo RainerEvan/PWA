@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFireMessaging } from '@angular/fire/compat/messaging';
 import { BehaviorSubject } from 'rxjs';
-import { FcmtokenService } from '../fcmtoken/fcmtoken.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,37 +8,24 @@ import { FcmtokenService } from '../fcmtoken/fcmtoken.service';
 export class MessagingService {
 
   currentMessage = new BehaviorSubject(null);
-  accountTokens = [];
 
-  constructor(private afMessaging: AngularFireMessaging, private fcmTokenService:FcmtokenService) {}
+  constructor(private angularFireMessaging: AngularFireMessaging) { }
 
-  requestPermission(accountId:string) {
-    this.afMessaging.requestToken.subscribe({
-      next: (token:any) => {
-        this.saveToken(accountId, token)
-        console.log("Notification permission granted!", token);
-      },
-      error: (error) => {
-        console.error('Unable to get permission',error);
-      }
-    });
-  }
-
-  receiveMessage(){
-    this.afMessaging.messages.subscribe({
-      next:(payload:any) => {
-        console.log("New message received ", payload);
-        this.currentMessage.next(payload);
-      }
+  requestPermission() {
+    this.angularFireMessaging.requestToken.subscribe(
+    (token) => {
+    console.log(token);
+    },
+    (err) => {
+    console.error('Unable to get permission to notify.', err);
+    }
+    );
+    }
+    receiveMessage() {
+    this.angularFireMessaging.messages.subscribe(
+    (payload:any) => {
+    console.log("new message received. ", payload);
+    this.currentMessage.next(payload);
     })
-  }
-
-  private saveToken(accountId:string, token:any): void {
-    this.fcmTokenService.addFcmToken(accountId,token).subscribe({
-      next:(response:any) => {
-        console.log("Fcm token saved successfully", response);
-      }
-    })
-      
-  }
+    }
 }
